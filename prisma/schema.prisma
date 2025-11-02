@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trend {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  source          String   // google, twitter, youtube, reddit
+  category        String?
+  language        String   @default("en")
+  region          String   @default("US")
+  popularityScore Int      @default(0)
+  url             String?
+  keywords        String?  // JSON array of keywords
+  status          String   @default("pending") // pending, approved, rejected
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  posts           Post[]
+}
+
+model Post {
+  id              String   @id @default(uuid())
+  trendId         String?
+  platform        String   // facebook, instagram, twitter, youtube, pinterest, threads
+  content         String
+  caption         String?
+  imageUrl        String?
+  imagePrompt     String?
+  tone            String   @default("professional") // funny, professional, informative
+  hashtags        String?  // JSON array
+  status          String   @default("draft") // draft, scheduled, published, failed
+  scheduledFor    DateTime?
+  publishedAt     DateTime?
+  platformPostId  String?
+  likes           Int      @default(0)
+  comments        Int      @default(0)
+  shares          Int      @default(0)
+  views           Int      @default(0)
+  engagement      Float    @default(0)
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  trend           Trend?   @relation(fields: [trendId], references: [id])
+}
+
+model SocialAccount {
+  id           String   @id @default(uuid())
+  platform     String   @unique // facebook, instagram, twitter, youtube, pinterest, threads
+  username     String?
+  accessToken  String?
+  refreshToken String?
+  isActive     Boolean  @default(false)
+  lastSyncedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Analytics {
+  id                String   @id @default(uuid())
+  date              DateTime @default(now())
+  totalPosts        Int      @default(0)
+  totalLikes        Int      @default(0)
+  totalComments     Int      @default(0)
+  totalShares       Int      @default(0)
+  totalViews        Int      @default(0)
+  totalEngagement   Float    @default(0)
+  topPlatform       String?
+  topTrend          String?
+  createdAt         DateTime @default(now())
+}
+
+model Settings {
+  id                  String   @id @default(uuid())
+  autoPostEnabled     Boolean  @default(false)
+  postIntervalHours   Int      @default(4)
+  defaultTone         String   @default("professional")
+  defaultLanguage     String   @default("en")
+  enabledPlatforms    String   // JSON array
+  trendSources        String   // JSON array
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
